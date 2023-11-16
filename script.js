@@ -1,110 +1,83 @@
+"use strict";
+
 // Function to add expenses
 function addExpenses(event) {
     event.preventDefault();
-    
-    const amount = document.getElementById("amount").value;
-    const description = document.getElementById("description").value;
-    const categorySelect = document.getElementById("category");
-    const category = categorySelect.options[categorySelect.selectedIndex].value;
 
-    const expense = {
+    const amount = document.getElementById("expense").value;
+    const description = document.getElementById("description").value;
+    const selectElements = document.getElementById("select");
+    const select = selectElements.options[selectElements.selectedIndex].value;
+
+    const obj = {
         amount,
         description,
-        category,
+        select,
     };
 
-    // Store the expense object in localStorage 
-    localStorage.setItem(description, JSON.stringify(expense));
-
-    // Display the added expense
-    display(expense);
+    localStorage.setItem(obj.description, JSON.stringify(obj));
+    display(obj);
 }
 
 // Function to display an expense
-function display(expense) {
-    const dispValues = document.querySelector("#createTable tbody");
+function display(obj) {
+    const dispValues = document.getElementById("formElements");
 
-    const row = document.createElement("tr");
-    row.innerHTML = `
-        <td>${expense.amount}</td>
-        <td>${expense.description}</td>
-        <td>${expense.category}</td>
-        <td>
-            <button onclick="deleteExpense('${expense.description}')" class="btn btn-danger">Delete</button>
-            <button onclick="editExpense('${expense.description}')" class="btn btn-warning m-2">Edit</button>
-        </td>
-    `;
+    const data = document.createElement("li");
+    data.textContent = `${obj.amount} , ${obj.description} , ${obj.select}`;
+    dispValues.appendChild(data);
 
-    dispValues.appendChild(row);
-}
+    const deleteBtn = document.createElement("input");
+    deleteBtn.type = "button";
+    deleteBtn.value = "delete";
+    data.appendChild(deleteBtn);
 
-
-// Function to delete an expense
-function deleteExpense(description) {
-    localStorage.removeItem(description);
-
-    // Refresh the table
-    showData();
-}
-
-// Function to edit an expense
-function editExpense(description) {
-    const expense = JSON.parse(localStorage.getItem(description));
-
-    // Populate the form fields with the expense data
-    document.getElementById("amount").value = expense.amount;
-    document.getElementById("description").value = expense.description;
-    document.getElementById("category").value = expense.category;
-
-    // Update the button to "Update" mode
-    const submitButton = document.getElementById("submit");
-    submitButton.textContent = "Update";
-    submitButton.onclick = function () {
-        updateExpense(description);
+    deleteBtn.onclick = () => {
+        localStorage.removeItem(obj.description);
+        dispValues.removeChild(data);
     };
-    
-    // Focus on the amount field
-    document.getElementById("amount").focus();
+
+    const editBtn = document.createElement("input");
+    editBtn.type = "button";
+    editBtn.value = "edit";
+    data.appendChild(editBtn);
+
+    editBtn.onclick = () => {
+        document.getElementById("expense").value = obj.amount;
+        document.getElementById("description").value = obj.description;
+        document.getElementById("select").value = obj.select;
+        localStorage.removeItem(obj.description);
+        dispValues.removeChild(data);
+
+        const submitButton = document.getElementById("submit");
+        submitButton.textContent = "Update";
+        submitButton.onclick = function (event) {
+            updateExpense(event, obj);
+        };
+    };
 }
 
 // Function to update an expense
-function updateExpense(description) {
-    const amount = document.getElementById("amount").value;
-    const newDescription = document.getElementById("description").value;
-    const categorySelect = document.getElementById("category");
-    const category = categorySelect.options[categorySelect.selectedIndex].value;
+function updateExpense(event, obj) {
+    event.preventDefault();
 
-    const updatedExpense = {
+    const amount = document.getElementById("expense").value;
+    const description = document.getElementById("description").value;
+    const selectElements = document.getElementById("select");
+    const select = selectElements.options[selectElements.selectedIndex].value;
+
+    const updatedObj = {
         amount,
-        description: newDescription,
-        category,
+        description,
+        select,
     };
 
-    // Update the expense object in localStorage 
-    localStorage.setItem(description, JSON.stringify(updatedExpense));
-
-    // Reset the form fields
-    resetForm();
-
-    // Refresh the table
-    showData();
+    localStorage.setItem(updatedObj.description, JSON.stringify(updatedObj));
+    display(updatedObj);
 }
 
-// Function to reset 
-function resetForm() {
-    document.getElementById("amount").value = "";
-    document.getElementById("description").value = "";
-    document.getElementById("category").value = "Food & Beverage";
-    const submitButton = document.getElementById("submit");
-    submitButton.textContent = "Add Expenses";
-    submitButton.onclick = addExpenses;
-}
-
-// Function to show data
-function showData() {
-    const dispValues = document.querySelector("#createTable tbody");
-    dispValues.innerHTML = "";
-
+// Load stored expenses on page load
+function loadExpenses() {
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         const expense = JSON.parse(localStorage.getItem(key));
@@ -112,6 +85,8 @@ function showData() {
     }
 }
 
-showData();
+// Load stored expenses on page load
+loadExpenses();
 
-document.getElementById("submit").addEventListener("click", addExpenses);
+// Event listener for adding expenses
+document.getElementById("expenseForm").addEventListener("submit", addExpenses);
